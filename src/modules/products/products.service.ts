@@ -59,6 +59,27 @@ export class ProductsService {
 
     const skip = (page - 1) * limit;
 
+    const validSortFields = [
+      'id',
+      'name',
+      'slug',
+      'description',
+      'price',
+      'comparePrice',
+      'sku',
+      'category',
+      'subCategory',
+      'brand',
+      'isActive',
+      'isFeatured',
+      'rating',
+      'ratingCount',
+      'views',
+      'createdAt',
+      'updatedAt',
+    ];
+    const sortField = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
+
     const [total, items] = await Promise.all([
       this.prisma.product.count({ where }),
       this.prisma.product.findMany({
@@ -66,7 +87,7 @@ export class ProductsService {
         skip,
         take: limit,
         orderBy: {
-          [sortBy]: sortOrder,
+          [sortField]: sortOrder,
         },
         include: {
           images: true,
