@@ -466,4 +466,19 @@ export class UsersService {
     const { passwordHash, refreshToken, mfaSecret, ...sanitized } = updated;
     return sanitized;
   }
+
+  async updateCustomerNotes(id: string, notes: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.prisma.user.update({
+      where: { id },
+      data: { notes },
+    });
+  }
 }

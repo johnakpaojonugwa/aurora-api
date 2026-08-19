@@ -22,6 +22,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { CouponsModule } from './modules/coupons/coupons.module';
 import { SettingsModule } from './modules/settings/settings.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
