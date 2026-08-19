@@ -1,0 +1,11 @@
+{
+  "app": {
+    "name": "aurora-backend",
+    "framework": "nestjs",
+    "httpPort": 3000,
+    "build": {
+      "command": "npm run build",
+      "outputDirectory": "dist"
+    }
+  }
+}
