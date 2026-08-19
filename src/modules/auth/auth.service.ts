@@ -170,7 +170,12 @@ export class AuthService {
       }
 
       // Check if refresh token matches
-      if (user.refreshToken !== dto.refreshToken) {
+      if (!user.refreshToken) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      const isTokenMatching = await bcrypt.compare(dto.refreshToken, user.refreshToken);
+      if (!isTokenMatching) {
         // Token theft detected - invalidate all sessions
         await this.invalidateAllSessions(user.id);
         throw new UnauthorizedException('Invalid refresh token');
@@ -188,13 +193,31 @@ export class AuthService {
     }
   }
 
-  async logout(userId: string) {
+  async logout(userId: string, token?: string) {
     await this.prisma.user.update({
       where: { id: userId },
       data: { refreshToken: null },
     });
 
-    // In a real project, blacklist active access token in Redis here if using token blacklisting
+    if (token) {
+      try {
+        const decoded = this.jwtService.decode(token) as any;
+        if (decoded && decoded.exp) {
+          const now = Math.floor(Date.now() / 1000);
+          const remainingSeconds = decoded.exp - now;
+          if (remainingSeconds > 0) {
+            await this.redisService.setex(
+              `blacklist:${token}`,
+              remainingSeconds,
+              'true',
+            );
+          }
+        }
+      } catch (error) {
+        // Ignore decoding error
+      }
+    }
+
     return { success: true };
   }
 
@@ -278,10 +301,12 @@ export class AuthService {
       },
     );
 
-    // Store refresh token hash
+    // Hash the refresh token before storing it in the database
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 12);
+
     await this.prisma.user.update({
       where: { id: userId },
-      data: { refreshToken },
+      data: { refreshToken: hashedRefreshToken },
     });
 
     return { accessToken, refreshToken };

@@ -1,4 +1,5 @@
-import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus, BadRequestException, Req } from '@nestjs/common';
+import * as express from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -42,8 +43,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Post('logout')
-  async logout(@GetUser('id') userId: string) {
-    return this.authService.logout(userId);
+  async logout(@GetUser('id') userId: string, @Req() req: express.Request) {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    return this.authService.logout(userId, token);
   }
 
   @UseGuards(JwtAuthGuard)

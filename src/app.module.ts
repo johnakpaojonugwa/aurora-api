@@ -19,6 +19,8 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { EmailModule } from './modules/email/email.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -91,5 +93,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
     EmailModule,
     AnalyticsModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
