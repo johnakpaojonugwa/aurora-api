@@ -43,7 +43,9 @@ export class SettingsService {
       defaultCurrency: s.defaultCurrency,
       taxRates: s.taxRates,
       shippingRules: s.shippingRules,
-      freeShippingThreshold: s.freeShippingThreshold ? Number(s.freeShippingThreshold) : null,
+      freeShippingThreshold: s.freeShippingThreshold
+        ? Number(s.freeShippingThreshold)
+        : null,
     };
   }
 
@@ -69,7 +71,9 @@ export class SettingsService {
       defaultCurrency: updated.defaultCurrency,
       taxRates: updated.taxRates,
       shippingRules: updated.shippingRules,
-      freeShippingThreshold: updated.freeShippingThreshold ? Number(updated.freeShippingThreshold) : null,
+      freeShippingThreshold: updated.freeShippingThreshold
+        ? Number(updated.freeShippingThreshold)
+        : null,
     };
   }
 
@@ -96,7 +100,9 @@ export class SettingsService {
   async getShippingSettings() {
     const s = await this.getOrCreateSettings();
     return {
-      freeShippingThreshold: s.freeShippingThreshold ? Number(s.freeShippingThreshold) : null,
+      freeShippingThreshold: s.freeShippingThreshold
+        ? Number(s.freeShippingThreshold)
+        : null,
       rules: s.shippingRules as any[],
     };
   }
@@ -106,12 +112,17 @@ export class SettingsService {
     const updated = await this.prisma.systemSettings.update({
       where: { id: SETTINGS_ID },
       data: {
-        freeShippingThreshold: dto.freeShippingThreshold !== undefined ? dto.freeShippingThreshold : undefined,
+        freeShippingThreshold:
+          dto.freeShippingThreshold !== undefined
+            ? dto.freeShippingThreshold
+            : undefined,
         shippingRules: dto.rules as any,
       },
     });
     return {
-      freeShippingThreshold: updated.freeShippingThreshold ? Number(updated.freeShippingThreshold) : null,
+      freeShippingThreshold: updated.freeShippingThreshold
+        ? Number(updated.freeShippingThreshold)
+        : null,
       rules: updated.shippingRules as any[],
     };
   }

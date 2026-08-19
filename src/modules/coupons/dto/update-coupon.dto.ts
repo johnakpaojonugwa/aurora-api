@@ -1,4 +1,12 @@
-import { IsOptional, IsString, IsEnum, IsNumber, IsDate, IsBoolean, Min } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsEnum,
+  IsNumber,
+  IsDate,
+  IsBoolean,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { CouponType } from './create-coupon.dto';
 

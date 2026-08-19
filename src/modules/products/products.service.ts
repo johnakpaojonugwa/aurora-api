@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -13,7 +17,17 @@ export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(filters: ProductFiltersDto) {
-    const { category, brand, minPrice, maxPrice, q, page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = filters;
+    const {
+      category,
+      brand,
+      minPrice,
+      maxPrice,
+      q,
+      page = 1,
+      limit = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = filters;
 
     const where: Prisma.ProductWhereInput = { isActive: true };
 
@@ -93,10 +107,12 @@ export class ProductsService {
     }
 
     // Increment views in the background
-    this.prisma.product.update({
-      where: { id },
-      data: { views: { increment: 1 } },
-    }).catch((err) => console.error(`Error updating product views: ${err}`));
+    this.prisma.product
+      .update({
+        where: { id },
+        data: { views: { increment: 1 } },
+      })
+      .catch((err) => console.error(`Error updating product views: ${err}`));
 
     return product;
   }
@@ -104,22 +120,23 @@ export class ProductsService {
   async create(dto: CreateProductDto) {
     const existing = await this.prisma.product.findFirst({
       where: {
-        OR: [
-          { slug: dto.slug },
-          { sku: dto.sku },
-        ],
+        OR: [{ slug: dto.slug }, { sku: dto.sku }],
       },
     });
 
     if (existing) {
-      throw new ConflictException('Product with this slug or SKU already exists');
+      throw new ConflictException(
+        'Product with this slug or SKU already exists',
+      );
     }
 
     return this.prisma.product.create({
       data: {
         ...dto,
         price: new Prisma.Decimal(dto.price),
-        comparePrice: dto.comparePrice ? new Prisma.Decimal(dto.comparePrice) : null,
+        comparePrice: dto.comparePrice
+          ? new Prisma.Decimal(dto.comparePrice)
+          : null,
       },
       include: {
         images: true,
@@ -145,7 +162,9 @@ export class ProductsService {
       });
 
       if (existing) {
-        throw new ConflictException('Product with this slug or SKU already exists');
+        throw new ConflictException(
+          'Product with this slug or SKU already exists',
+        );
       }
     }
 
@@ -153,8 +172,14 @@ export class ProductsService {
       where: { id },
       data: {
         ...dto,
-        price: dto.price !== undefined ? new Prisma.Decimal(dto.price) : undefined,
-        comparePrice: dto.comparePrice !== undefined ? (dto.comparePrice ? new Prisma.Decimal(dto.comparePrice) : null) : undefined,
+        price:
+          dto.price !== undefined ? new Prisma.Decimal(dto.price) : undefined,
+        comparePrice:
+          dto.comparePrice !== undefined
+            ? dto.comparePrice
+              ? new Prisma.Decimal(dto.comparePrice)
+              : null
+            : undefined,
       },
       include: {
         images: true,
@@ -277,15 +302,14 @@ export class ProductsService {
   async adminCreate(dto: AdminCreateProductDto) {
     const existing = await this.prisma.product.findFirst({
       where: {
-        OR: [
-          { slug: dto.seo.slug },
-          { sku: dto.sku },
-        ],
+        OR: [{ slug: dto.seo.slug }, { sku: dto.sku }],
       },
     });
 
     if (existing) {
-      throw new ConflictException('Product with this slug or SKU already exists');
+      throw new ConflictException(
+        'Product with this slug or SKU already exists',
+      );
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -295,7 +319,9 @@ export class ProductsService {
           slug: dto.seo.slug,
           description: dto.description,
           price: new Prisma.Decimal(dto.price),
-          comparePrice: dto.comparePrice ? new Prisma.Decimal(dto.comparePrice) : null,
+          comparePrice: dto.comparePrice
+            ? new Prisma.Decimal(dto.comparePrice)
+            : null,
           sku: dto.sku,
           category: dto.category,
           isActive: dto.isActive,
@@ -362,7 +388,9 @@ export class ProductsService {
       });
 
       if (existing) {
-        throw new ConflictException('Product with this slug or SKU already exists');
+        throw new ConflictException(
+          'Product with this slug or SKU already exists',
+        );
       }
     }
 
@@ -373,8 +401,14 @@ export class ProductsService {
           name: dto.name,
           slug: dto.seo?.slug,
           description: dto.description,
-          price: dto.price !== undefined ? new Prisma.Decimal(dto.price) : undefined,
-          comparePrice: dto.comparePrice !== undefined ? (dto.comparePrice ? new Prisma.Decimal(dto.comparePrice) : null) : undefined,
+          price:
+            dto.price !== undefined ? new Prisma.Decimal(dto.price) : undefined,
+          comparePrice:
+            dto.comparePrice !== undefined
+              ? dto.comparePrice
+                ? new Prisma.Decimal(dto.comparePrice)
+                : null
+              : undefined,
           sku: dto.sku,
           category: dto.category,
           isActive: dto.isActive,
@@ -483,14 +517,18 @@ export class ProductsService {
     const rows = parseCsv(csvString);
 
     if (rows.length < 2) {
-      return { success: 0, skipped: 0, errors: ['CSV file is empty or missing data rows'] };
+      return {
+        success: 0,
+        skipped: 0,
+        errors: ['CSV file is empty or missing data rows'],
+      };
     }
 
     const headers = rows[0].map((h) => h.toLowerCase());
     const dataRows = rows.slice(1);
 
     let successCount = 0;
-    let skippedCount = 0;
+    const skippedCount = 0;
     const errors: string[] = [];
 
     const nameIdx = headers.indexOf('name');
@@ -500,11 +538,18 @@ export class ProductsService {
     const descriptionIdx = headers.indexOf('description');
     const stockIdx = headers.indexOf('stock');
 
-    if (nameIdx === -1 || skuIdx === -1 || priceIdx === -1 || categoryIdx === -1) {
+    if (
+      nameIdx === -1 ||
+      skuIdx === -1 ||
+      priceIdx === -1 ||
+      categoryIdx === -1
+    ) {
       return {
         success: 0,
         skipped: 0,
-        errors: [`Missing required columns. Found headers: ${headers.join(', ')}`],
+        errors: [
+          `Missing required columns. Found headers: ${headers.join(', ')}`,
+        ],
       };
     }
 

@@ -15,9 +15,15 @@ import { EmailModule } from '../email/email.module';
     EmailModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('jwtSecret', 'supersecretkeychangeinproduction'),
+        secret: configService.get<string>(
+          'jwtSecret',
+          'supersecretkeychangeinproduction',
+        ),
         signOptions: {
-          expiresIn: configService.get<string>('jwtAccessExpiration', '15m') as any,
+          expiresIn: configService.get<string>(
+            'jwtAccessExpiration',
+            '15m',
+          ) as any,
         },
       }),
       inject: [ConfigService],

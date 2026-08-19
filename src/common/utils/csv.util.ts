@@ -8,14 +8,19 @@ export function generateCsv(headers: string[], rows: any[][]): string {
       val = JSON.stringify(val);
     }
     let str = String(val);
-    if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+    if (
+      str.includes(',') ||
+      str.includes('"') ||
+      str.includes('\n') ||
+      str.includes('\r')
+    ) {
       str = '"' + str.replace(/"/g, '""') + '"';
     }
     return str;
   };
 
   const headerRow = headers.map(escapeCell).join(',');
-  const dataRows = rows.map(row => row.map(escapeCell).join(',')).join('\n');
+  const dataRows = rows.map((row) => row.map(escapeCell).join(',')).join('\n');
   return `${headerRow}\n${dataRows}`;
 }
 

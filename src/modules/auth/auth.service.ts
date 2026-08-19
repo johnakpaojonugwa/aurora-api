@@ -71,7 +71,10 @@ export class AuthService {
     const tokens = await this.generateTokens(user.id, user.email, user.role);
 
     // Send verification email
-    await this.emailService.sendVerificationEmail(user.email, tokens.accessToken);
+    await this.emailService.sendVerificationEmail(
+      user.email,
+      tokens.accessToken,
+    );
 
     return {
       user: this.sanitizeUser(user),
@@ -185,7 +188,10 @@ export class AuthService {
   async refresh(dto: RefreshTokenDto) {
     try {
       const payload = this.jwtService.verify(dto.refreshToken, {
-        secret: this.configService.get<string>('jwtRefreshSecret', 'superrefreshsecretkeychangeinproduction'),
+        secret: this.configService.get<string>(
+          'jwtRefreshSecret',
+          'superrefreshsecretkeychangeinproduction',
+        ),
       });
 
       const user = await this.prisma.user.findUnique({
@@ -201,7 +207,10 @@ export class AuthService {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
-      const isTokenMatching = await bcrypt.compare(dto.refreshToken, user.refreshToken);
+      const isTokenMatching = await bcrypt.compare(
+        dto.refreshToken,
+        user.refreshToken,
+      );
       if (!isTokenMatching) {
         // Token theft detected - invalidate all sessions
         await this.invalidateAllSessions(user.id);
@@ -228,7 +237,7 @@ export class AuthService {
 
     if (token) {
       try {
-        const decoded = this.jwtService.decode(token) as any;
+        const decoded = this.jwtService.decode(token);
         if (decoded && decoded.exp) {
           const now = Math.floor(Date.now() / 1000);
           const remainingSeconds = decoded.exp - now;
@@ -323,8 +332,14 @@ export class AuthService {
         role,
       },
       {
-        secret: this.configService.get<string>('jwtRefreshSecret', 'superrefreshsecretkeychangeinproduction'),
-        expiresIn: this.configService.get<string>('jwtRefreshExpiration', '7d') as any,
+        secret: this.configService.get<string>(
+          'jwtRefreshSecret',
+          'superrefreshsecretkeychangeinproduction',
+        ),
+        expiresIn: this.configService.get<string>(
+          'jwtRefreshExpiration',
+          '7d',
+        ) as any,
       },
     );
 

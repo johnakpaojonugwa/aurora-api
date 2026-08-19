@@ -7,7 +7,11 @@ import { PrismaModule } from '../../database/prisma.module';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [UsersController, AdminUsersController, AdminCustomersController],
+  controllers: [
+    UsersController,
+    AdminUsersController,
+    AdminCustomersController,
+  ],
   providers: [UsersService],
   exports: [UsersService],
 })

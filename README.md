@@ -152,3 +152,39 @@ All success API routes are encapsulated in a standard `{ success: true, data }` 
 | **POST** | `/products` | Admin / Manager | Creates a new product catalog item |
 | **PUT** | `/products/:id` | Admin / Manager | Updates product details, price, SKU, or variation |
 | **DELETE**| `/products/:id` | Admin | Deletes product catalog item |
+
+### 🛒 Shopping Cart Endpoints (`/api/v1/cart`)
+
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/cart` | JWT Auth | Retrieves active user cart state mapped to flat JSON schema |
+| **POST** | `/cart/add` | JWT Auth | Appends a product variation/quantity to the user shopping cart |
+
+### 💳 Checkout Endpoints (`/api/v1/checkout`)
+
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| **POST** | `/checkout` | JWT Auth | Submits shipping address and payment token; processes transaction and stock safety |
+
+### 📊 Admin Analytics & Dashboard Overview (`/api/v1/admin`)
+
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/admin/dashboard-overview` | Admin / Manager | Consolidated telemetry (total sales, orders, customers count, alerts, recent orders) |
+| **GET** | `/admin/analytics/sales` | Admin / Manager | Fetch breakdown of sales trends by day/week/month or region |
+| **GET** | `/admin/analytics/products` | Admin | Retrieves product performance analytics |
+| **GET** | `/admin/analytics/customers` | Admin | Retrieves customer order and registration analytics |
+| **GET** | `/admin/analytics/inventory` | Admin / Manager | Retrieves category stock status analysis |
+
+### 👥 Admin User Management (`/api/v1/admin/users`)
+
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/admin/users` | Admin | Lists all manager and admin team accounts |
+| **POST** | `/admin/users` | Admin | Provisions a new manager or admin user |
+| **PUT** | `/admin/users/role` | Admin | Updates user role assignment by email (Security Hardened) |
+| **PUT** | `/admin/users/status` | Admin | Toggles user active/suspension status by email |
+| **PUT** | `/admin/users/:id/role` | Admin | *Deprecated*: Updates role assignment by user ID |
+| **PUT** | `/admin/users/:id/suspend` | Admin | *Deprecated*: Suspends user account logon by user ID |
+| **PUT** | `/admin/users/:id/activate` | Admin | *Deprecated*: Restores user account logon by user ID |
+

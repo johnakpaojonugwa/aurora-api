@@ -53,10 +53,7 @@ export class AdminCouponsController {
 
   @Put(':id')
   @AuditLogAction('COUPON_UPDATED', 'coupons')
-  async update(
-    @Param('id') id: string,
-    @Body() dto: UpdateCouponDto,
-  ) {
+  async update(@Param('id') id: string, @Body() dto: UpdateCouponDto) {
     return this.couponsService.update(id, dto);
   }
 

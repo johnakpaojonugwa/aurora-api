@@ -62,10 +62,7 @@ export class AdminProductsController {
   @Put(':id')
   @Roles('admin', 'manager')
   @AuditLogAction('PRODUCT_UPDATED', 'products')
-  async update(
-    @Param('id') id: string,
-    @Body() dto: AdminUpdateProductDto,
-  ) {
+  async update(@Param('id') id: string, @Body() dto: AdminUpdateProductDto) {
     return this.productsService.adminUpdate(id, dto);
   }
 

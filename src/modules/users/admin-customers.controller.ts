@@ -50,10 +50,7 @@ export class AdminCustomersController {
   @Put(':id/suspend')
   @Roles('admin')
   @AuditLogAction('CUSTOMER_SUSPENDED', 'users')
-  async suspend(
-    @Param('id') id: string,
-    @Body() dto: SuspendUserDto,
-  ) {
+  async suspend(@Param('id') id: string, @Body() dto: SuspendUserDto) {
     return this.usersService.suspendUser(id, dto.reason);
   }
 
@@ -67,10 +64,7 @@ export class AdminCustomersController {
   @Post(':id/reset-password')
   @Roles('admin')
   @AuditLogAction('CUSTOMER_PASSWORD_RESET', 'users')
-  async resetPassword(
-    @Param('id') id: string,
-    @Body() dto: ResetPasswordDto,
-  ) {
+  async resetPassword(@Param('id') id: string, @Body() dto: ResetPasswordDto) {
     const sendMail = dto.sendEmail !== undefined ? dto.sendEmail : true;
     return this.usersService.resetCustomerPassword(id, sendMail);
   }

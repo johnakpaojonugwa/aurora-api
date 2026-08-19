@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { Role } from '@prisma/client';
 import { CreateAdminUserDto } from './dto/create-admin-user.dto';
@@ -10,7 +15,9 @@ export class UsersService {
 
   async updateRole(id: string, role: Role) {
     if (role === Role.admin) {
-      throw new ForbiddenException('Cannot promote a user to admin role via the API');
+      throw new ForbiddenException(
+        'Cannot promote a user to admin role via the API',
+      );
     }
 
     const user = await this.prisma.user.findUnique({
@@ -103,7 +110,7 @@ export class UsersService {
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 12);
-    
+
     // Split name into first and last name
     const nameParts = dto.name.trim().split(/\s+/);
     const firstName = nameParts[0] || '';
@@ -115,7 +122,7 @@ export class UsersService {
         passwordHash: hashedPassword,
         firstName,
         lastName,
-        role: dto.role as Role,
+        role: dto.role,
         isActive: true,
       },
     });
@@ -125,6 +132,12 @@ export class UsersService {
   }
 
   async adminUpdateRole(id: string, role: Role) {
+    if (role === Role.admin) {
+      throw new ForbiddenException(
+        'Cannot promote a user to admin role via the API',
+      );
+    }
+
     const user = await this.prisma.user.findUnique({
       where: { id },
     });
@@ -338,7 +351,9 @@ export class UsersService {
 
     return {
       id: customer.id,
-      name: `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || customer.email,
+      name:
+        `${customer.firstName || ''} ${customer.lastName || ''}`.trim() ||
+        customer.email,
       email: customer.email,
       firstName: customer.firstName,
       lastName: customer.lastName,
@@ -375,7 +390,8 @@ export class UsersService {
     }
 
     // Generate random password
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+    const chars =
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
     let randomPassword = '';
     for (let i = 0; i < 12; i++) {
       randomPassword += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -393,13 +409,61 @@ export class UsersService {
     // In a real application, if sendEmail is true, we would call EmailService to send this password.
     // Let's print it to console or mock it
     if (sendEmail) {
-      console.log(`[UsersService] Resetting password for customer ${customer.email}. New password: ${randomPassword}`);
+      console.log(
+        `[UsersService] Resetting password for customer ${customer.email}. New password: ${randomPassword}`,
+      );
     }
 
     return {
       success: true,
       newPassword: randomPassword,
-      message: sendEmail ? 'Password reset email sent' : 'Password reset successful',
+      message: sendEmail
+        ? 'Password reset email sent'
+        : 'Password reset successful',
     };
+  }
+
+  async updateRoleByEmail(email: string, role: Role) {
+    if (role === Role.admin) {
+      throw new ForbiddenException(
+        'Cannot promote a user to admin role via the API',
+      );
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { email: email.toLowerCase() },
+      data: { role },
+    });
+
+    const { passwordHash, refreshToken, mfaSecret, ...sanitized } = updated;
+    return sanitized;
+  }
+
+  async updateStatusByEmail(email: string, status: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { email: email.toLowerCase() },
+      data: {
+        isActive: status.toUpperCase() === 'ACTIVE',
+      },
+    });
+
+    const { passwordHash, refreshToken, mfaSecret, ...sanitized } = updated;
+    return sanitized;
   }
 }

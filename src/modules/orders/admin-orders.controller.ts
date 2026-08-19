@@ -82,10 +82,7 @@ export class AdminOrdersController {
   @Post(':id/refund')
   @Roles('admin')
   @AuditLogAction('ORDER_REFUNDED', 'orders')
-  async refund(
-    @Param('id') id: string,
-    @Body() dto: RefundOrderDto,
-  ) {
+  async refund(@Param('id') id: string, @Body() dto: RefundOrderDto) {
     return this.ordersService.adminRefund(id, dto);
   }
 

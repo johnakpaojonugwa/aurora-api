@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { OrderStatus, PaymentStatus } from '@prisma/client';
+import { OrderStatus, PaymentStatus, Role } from '@prisma/client';
 
 @Injectable()
 export class AnalyticsService {
@@ -38,7 +38,7 @@ export class AnalyticsService {
     region?: string;
   }) {
     const where: any = {};
-    
+
     // Filters
     if (query.startDate || query.endDate) {
       where.createdAt = {};
@@ -69,20 +69,38 @@ export class AnalyticsService {
       : orders;
 
     // Aggregations
-    const paidOrders = filteredOrders.filter((o) => o.paymentStatus === PaymentStatus.succeeded || o.status === OrderStatus.paid || o.status === OrderStatus.delivered);
-    const refundedOrders = filteredOrders.filter((o) => o.paymentStatus === PaymentStatus.refunded || o.status === OrderStatus.refunded);
+    const paidOrders = filteredOrders.filter(
+      (o) =>
+        o.paymentStatus === PaymentStatus.succeeded ||
+        o.status === OrderStatus.paid ||
+        o.status === OrderStatus.delivered,
+    );
+    const refundedOrders = filteredOrders.filter(
+      (o) =>
+        o.paymentStatus === PaymentStatus.refunded ||
+        o.status === OrderStatus.refunded,
+    );
 
-    const totalRevenue = paidOrders.reduce((sum, o) => sum + Number(o.total), 0);
+    const totalRevenue = paidOrders.reduce(
+      (sum, o) => sum + Number(o.total),
+      0,
+    );
     const totalOrders = filteredOrders.length;
     const totalRefunds = refundedOrders.length;
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-    
+
     // Simulating a real conversion rate (e.g. 2.8% base + tiny variance based on volume)
-    const conversionRate = totalOrders > 0 ? Math.min(100, Number((2.5 + (totalOrders % 5) * 0.2).toFixed(2))) : 0.0;
+    const conversionRate =
+      totalOrders > 0
+        ? Math.min(100, Number((2.5 + (totalOrders % 5) * 0.2).toFixed(2)))
+        : 0.0;
 
     // Time-series generation
     const granularity = query.granularity || 'day';
-    const timeSeriesMap = new Map<string, { revenue: number; orders: number }>();
+    const timeSeriesMap = new Map<
+      string,
+      { revenue: number; orders: number }
+    >();
 
     filteredOrders.forEach((o) => {
       let key = '';
@@ -105,17 +123,23 @@ export class AnalyticsService {
 
       const current = timeSeriesMap.get(key) || { revenue: 0, orders: 0 };
       current.orders += 1;
-      if (o.paymentStatus === PaymentStatus.succeeded || o.status === OrderStatus.paid || o.status === OrderStatus.delivered) {
+      if (
+        o.paymentStatus === PaymentStatus.succeeded ||
+        o.status === OrderStatus.paid ||
+        o.status === OrderStatus.delivered
+      ) {
         current.revenue += Number(o.total);
       }
       timeSeriesMap.set(key, current);
     });
 
-    const timeSeries = Array.from(timeSeriesMap.entries()).map(([date, val]) => ({
-      date,
-      revenue: Number(val.revenue.toFixed(2)),
-      orders: val.orders,
-    })).sort((a, b) => a.date.localeCompare(b.date));
+    const timeSeries = Array.from(timeSeriesMap.entries())
+      .map(([date, val]) => ({
+        date,
+        revenue: Number(val.revenue.toFixed(2)),
+        orders: val.orders,
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
 
     // Region grouping
     const regionMap = new Map<string, { revenue: number; orders: number }>();
@@ -124,17 +148,23 @@ export class AnalyticsService {
       const region = addr?.country || addr?.state || 'Unknown';
       const current = regionMap.get(region) || { revenue: 0, orders: 0 };
       current.orders += 1;
-      if (o.paymentStatus === PaymentStatus.succeeded || o.status === OrderStatus.paid || o.status === OrderStatus.delivered) {
+      if (
+        o.paymentStatus === PaymentStatus.succeeded ||
+        o.status === OrderStatus.paid ||
+        o.status === OrderStatus.delivered
+      ) {
         current.revenue += Number(o.total);
       }
       regionMap.set(region, current);
     });
 
-    const byRegion = Array.from(regionMap.entries()).map(([region, val]) => ({
-      region,
-      revenue: Number(val.revenue.toFixed(2)),
-      orders: val.orders,
-    })).sort((a, b) => b.revenue - a.revenue);
+    const byRegion = Array.from(regionMap.entries())
+      .map(([region, val]) => ({
+        region,
+        revenue: Number(val.revenue.toFixed(2)),
+        orders: val.orders,
+      }))
+      .sort((a, b) => b.revenue - a.revenue);
 
     return {
       summary: {
@@ -168,11 +198,25 @@ export class AnalyticsService {
     });
 
     // Top selling and returned
-    const productSalesMap = new Map<string, { name: string; sku: string; revenue: number; quantity: number; returns: number }>();
+    const productSalesMap = new Map<
+      string,
+      {
+        name: string;
+        sku: string;
+        revenue: number;
+        quantity: number;
+        returns: number;
+      }
+    >();
 
     orders.forEach((o) => {
-      const isRefunded = o.paymentStatus === PaymentStatus.refunded || o.status === OrderStatus.refunded;
-      const isPaid = o.paymentStatus === PaymentStatus.succeeded || o.status === OrderStatus.paid || o.status === OrderStatus.delivered;
+      const isRefunded =
+        o.paymentStatus === PaymentStatus.refunded ||
+        o.status === OrderStatus.refunded;
+      const isPaid =
+        o.paymentStatus === PaymentStatus.succeeded ||
+        o.status === OrderStatus.paid ||
+        o.status === OrderStatus.delivered;
 
       o.items.forEach((item) => {
         const current = productSalesMap.get(item.productId) || {
@@ -196,14 +240,16 @@ export class AnalyticsService {
       });
     });
 
-    const salesList = Array.from(productSalesMap.entries()).map(([productId, val]) => ({
-      productId,
-      name: val.name,
-      sku: val.sku,
-      revenue: Number(val.revenue.toFixed(2)),
-      quantitySold: val.quantity,
-      returnCount: val.returns,
-    }));
+    const salesList = Array.from(productSalesMap.entries()).map(
+      ([productId, val]) => ({
+        productId,
+        name: val.name,
+        sku: val.sku,
+        revenue: Number(val.revenue.toFixed(2)),
+        quantitySold: val.quantity,
+        returnCount: val.returns,
+      }),
+    );
 
     const topSelling = [...salesList]
       .sort((a, b) => b.revenue - a.revenue)
@@ -266,11 +312,16 @@ export class AnalyticsService {
       totalCatRevenue += p.revenue;
     });
 
-    const categoryDistribution = Array.from(categoryMap.entries()).map(([category, revenue]) => ({
-      category,
-      revenue: Number(revenue.toFixed(2)),
-      percentage: totalCatRevenue > 0 ? Number(((revenue / totalCatRevenue) * 100).toFixed(2)) : 0.0,
-    })).sort((a, b) => b.revenue - a.revenue);
+    const categoryDistribution = Array.from(categoryMap.entries())
+      .map(([category, revenue]) => ({
+        category,
+        revenue: Number(revenue.toFixed(2)),
+        percentage:
+          totalCatRevenue > 0
+            ? Number(((revenue / totalCatRevenue) * 100).toFixed(2))
+            : 0.0,
+      }))
+      .sort((a, b) => b.revenue - a.revenue);
 
     return {
       topSelling,
@@ -299,9 +350,15 @@ export class AnalyticsService {
     monthStart.setMonth(monthStart.getMonth() - 1);
 
     const [todayCount, weekCount, monthCount] = await Promise.all([
-      this.prisma.user.count({ where: { role: 'user', createdAt: { gte: todayStart } } }),
-      this.prisma.user.count({ where: { role: 'user', createdAt: { gte: weekStart } } }),
-      this.prisma.user.count({ where: { role: 'user', createdAt: { gte: monthStart } } }),
+      this.prisma.user.count({
+        where: { role: 'user', createdAt: { gte: todayStart } },
+      }),
+      this.prisma.user.count({
+        where: { role: 'user', createdAt: { gte: weekStart } },
+      }),
+      this.prisma.user.count({
+        where: { role: 'user', createdAt: { gte: monthStart } },
+      }),
     ]);
 
     // Repeat purchase rate
@@ -314,12 +371,22 @@ export class AnalyticsService {
       },
     });
 
-    const customerWithAnyOrder = customersWithOrders.filter((c) => c.orders.length > 0);
-    const repeatCustomers = customersWithOrders.filter((c) => c.orders.length >= 2);
-    
-    const repeatPurchaseRate = customerWithAnyOrder.length > 0
-      ? Number(((repeatCustomers.length / customerWithAnyOrder.length) * 100).toFixed(2))
-      : 0.0;
+    const customerWithAnyOrder = customersWithOrders.filter(
+      (c) => c.orders.length > 0,
+    );
+    const repeatCustomers = customersWithOrders.filter(
+      (c) => c.orders.length >= 2,
+    );
+
+    const repeatPurchaseRate =
+      customerWithAnyOrder.length > 0
+        ? Number(
+            (
+              (repeatCustomers.length / customerWithAnyOrder.length) *
+              100
+            ).toFixed(2),
+          )
+        : 0.0;
 
     // Top spenders
     const spenders = customersWithOrders.map((c) => {
@@ -373,11 +440,13 @@ export class AnalyticsService {
       cohortMap.set(cohort, current);
     });
 
-    const lifetimeValueByCohort = Array.from(cohortMap.entries()).map(([cohort, val]) => ({
-      cohort,
-      averageLTV: Number((val.ltvSum / val.count).toFixed(2)),
-      customerCount: val.count,
-    })).sort((a, b) => a.cohort.localeCompare(b.cohort));
+    const lifetimeValueByCohort = Array.from(cohortMap.entries())
+      .map(([cohort, val]) => ({
+        cohort,
+        averageLTV: Number((val.ltvSum / val.count).toFixed(2)),
+        customerCount: val.count,
+      }))
+      .sort((a, b) => a.cohort.localeCompare(b.cohort));
 
     return {
       newCustomers: {
@@ -392,11 +461,9 @@ export class AnalyticsService {
   }
 
   // ============ REGIONAL ANALYTICS ============
-  async getRegionalAnalytics(query: {
-    period?: 'week' | 'month' | 'year';
-  }) {
+  async getRegionalAnalytics(query: { period?: 'week' | 'month' | 'year' }) {
     const period = query.period || 'month';
-    const dateRange = this.getDateRangeForPeriod(period as any);
+    const dateRange = this.getDateRangeForPeriod(period);
 
     const orders = await this.prisma.order.findMany({
       where: {
@@ -408,7 +475,16 @@ export class AnalyticsService {
     });
 
     // Grouping by region
-    const regionSales = new Map<string, { revenue: number; orders: number; totalDeliveryDays: number; deliveredCount: number; onTimeCount: number }>();
+    const regionSales = new Map<
+      string,
+      {
+        revenue: number;
+        orders: number;
+        totalDeliveryDays: number;
+        deliveredCount: number;
+        onTimeCount: number;
+      }
+    >();
     const categoryByRegionMap = new Map<string, Map<string, number>>();
 
     const allProducts = await this.prisma.product.findMany({
@@ -419,7 +495,10 @@ export class AnalyticsService {
     orders.forEach((o) => {
       const addr = o.shippingAddress as any;
       const region = addr?.country || addr?.state || 'Unknown';
-      const isPaid = o.paymentStatus === PaymentStatus.succeeded || o.status === OrderStatus.paid || o.status === OrderStatus.delivered;
+      const isPaid =
+        o.paymentStatus === PaymentStatus.succeeded ||
+        o.status === OrderStatus.paid ||
+        o.status === OrderStatus.delivered;
 
       const current = regionSales.get(region) || {
         revenue: 0,
@@ -436,7 +515,9 @@ export class AnalyticsService {
 
       // Calculate delivery days
       if (o.deliveredAt && o.placedAt) {
-        const diffTime = Math.abs(o.deliveredAt.getTime() - o.placedAt.getTime());
+        const diffTime = Math.abs(
+          o.deliveredAt.getTime() - o.placedAt.getTime(),
+        );
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         current.totalDeliveryDays += diffDays;
         current.deliveredCount += 1;
@@ -450,9 +531,11 @@ export class AnalyticsService {
 
       // Category by region
       if (isPaid) {
-        const catMap = categoryByRegionMap.get(region) || new Map<string, number>();
+        const catMap =
+          categoryByRegionMap.get(region) || new Map<string, number>();
         o.items.forEach((item) => {
-          const category = prodCategoryMap.get(item.productId) || 'Uncategorized';
+          const category =
+            prodCategoryMap.get(item.productId) || 'Uncategorized';
           const rev = catMap.get(category) || 0;
           catMap.set(category, rev + Number(item.total));
         });
@@ -460,14 +543,21 @@ export class AnalyticsService {
       }
     });
 
-    const byRegion = Array.from(regionSales.entries()).map(([region, val]) => ({
-      region,
-      revenue: Number(val.revenue.toFixed(2)),
-      orders: val.orders,
-      averageOrderValue: val.orders > 0 ? Number((val.revenue / val.orders).toFixed(2)) : 0.0,
-    })).sort((a, b) => b.revenue - a.revenue);
+    const byRegion = Array.from(regionSales.entries())
+      .map(([region, val]) => ({
+        region,
+        revenue: Number(val.revenue.toFixed(2)),
+        orders: val.orders,
+        averageOrderValue:
+          val.orders > 0 ? Number((val.revenue / val.orders).toFixed(2)) : 0.0,
+      }))
+      .sort((a, b) => b.revenue - a.revenue);
 
-    const categoryByRegion: { region: string; category: string; revenue: number }[] = [];
+    const categoryByRegion: {
+      region: string;
+      category: string;
+      revenue: number;
+    }[] = [];
     categoryByRegionMap.forEach((catMap, region) => {
       catMap.forEach((revenue, category) => {
         categoryByRegion.push({
@@ -478,15 +568,23 @@ export class AnalyticsService {
       });
     });
 
-    const shippingPerformance = Array.from(regionSales.entries()).map(([region, val]) => {
-      const avg = val.deliveredCount > 0 ? val.totalDeliveryDays / val.deliveredCount : 3.2; // default realistic fallback
-      const rate = val.deliveredCount > 0 ? (val.onTimeCount / val.deliveredCount) * 100 : 96.5; // fallback
-      return {
-        region,
-        averageDeliveryDays: Number(avg.toFixed(1)),
-        onTimeRate: Number(rate.toFixed(2)),
-      };
-    });
+    const shippingPerformance = Array.from(regionSales.entries()).map(
+      ([region, val]) => {
+        const avg =
+          val.deliveredCount > 0
+            ? val.totalDeliveryDays / val.deliveredCount
+            : 3.2; // default realistic fallback
+        const rate =
+          val.deliveredCount > 0
+            ? (val.onTimeCount / val.deliveredCount) * 100
+            : 96.5; // fallback
+        return {
+          region,
+          averageDeliveryDays: Number(avg.toFixed(1)),
+          onTimeRate: Number(rate.toFixed(2)),
+        };
+      },
+    );
 
     return {
       byRegion,
@@ -509,7 +607,10 @@ export class AnalyticsService {
     let lowStock = 0;
     let inventoryValue = 0;
 
-    const categoryMap = new Map<string, { count: number; totalStock: number }>();
+    const categoryMap = new Map<
+      string,
+      { count: number; totalStock: number }
+    >();
 
     products.forEach((p) => {
       const stock = p.inventory?.quantity || 0;
@@ -531,11 +632,14 @@ export class AnalyticsService {
       categoryMap.set(cat, current);
     });
 
-    const byCategory = Array.from(categoryMap.entries()).map(([category, val]) => ({
-      category,
-      productCount: val.count,
-      averageStock: val.count > 0 ? Number((val.totalStock / val.count).toFixed(1)) : 0.0,
-    })).sort((a, b) => b.productCount - a.productCount);
+    const byCategory = Array.from(categoryMap.entries())
+      .map(([category, val]) => ({
+        category,
+        productCount: val.count,
+        averageStock:
+          val.count > 0 ? Number((val.totalStock / val.count).toFixed(1)) : 0.0,
+      }))
+      .sort((a, b) => b.productCount - a.productCount);
 
     return {
       totalProducts,
@@ -543,6 +647,65 @@ export class AnalyticsService {
       lowStock,
       inventoryValue: Number(inventoryValue.toFixed(2)),
       byCategory,
+    };
+  }
+
+  async getDashboardOverview() {
+    // 1. Total Sales and Orders (using sales analytics methods)
+    const salesData = await this.getSalesAnalytics({});
+
+    // 2. Total Customers (count total active customer users)
+    const customersCount = await this.prisma.user.count({
+      where: { role: Role.user, deletedAt: null },
+    });
+
+    // 3. Stock Alerts (count low stock inventory items)
+    const lowStockAlerts = await this.prisma.inventory.count({
+      where: {
+        quantity: {
+          lte: 5, // Default low threshold fallback
+        },
+      },
+    });
+
+    // 4. Recent Orders (fetch last 5 orders, include user details)
+    const recentOrders = await this.prisma.order.findMany({
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    const formattedRecentOrders = recentOrders.map((o) => ({
+      id: o.id,
+      orderNumber: o.orderNumber,
+      customer: {
+        id: o.user.id,
+        name:
+          `${o.user.firstName || ''} ${o.user.lastName || ''}`.trim() ||
+          o.user.email,
+        email: o.user.email,
+      },
+      total: Number(o.total),
+      status: o.status,
+      createdAt: o.createdAt,
+    }));
+
+    return {
+      totalSales: salesData.summary.totalRevenue,
+      totalOrders: salesData.summary.totalOrders,
+      totalCustomers: customersCount,
+      stockAlerts: lowStockAlerts,
+      recentOrders: formattedRecentOrders,
+      salesTrends: salesData.timeSeries.slice(-7), // return last 7 entries for chart trends
     };
   }
 }

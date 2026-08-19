@@ -8,7 +8,10 @@ import {
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { AdminProductSeoDto, AdminProductVariationDto } from './admin-create-product.dto';
+import {
+  AdminProductSeoDto,
+  AdminProductVariationDto,
+} from './admin-create-product.dto';
 
 export class AdminUpdateProductDto {
   @IsString()

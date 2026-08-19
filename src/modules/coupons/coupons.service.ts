@@ -1,9 +1,12 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateCouponDto } from './dto/create-coupon.dto';
 import { UpdateCouponDto } from './dto/update-coupon.dto';
 import { GenerateCouponsDto } from './dto/generate-coupons.dto';
-
 
 @Injectable()
 export class CouponsService {
@@ -187,7 +190,9 @@ export class CouponsService {
     }
 
     if (generatedCodes.length < dto.count) {
-      throw new ConflictException('Unable to generate unique coupon codes. Try a different prefix.');
+      throw new ConflictException(
+        'Unable to generate unique coupon codes. Try a different prefix.',
+      );
     }
 
     // Save all to database

@@ -66,7 +66,8 @@ import { AppService } from './app.service';
             : {
                 host: configService.get<string>('redisHost', 'localhost'),
                 port: configService.get<number>('redisPort', 6379),
-                password: configService.get<string>('redisPassword') || undefined,
+                password:
+                  configService.get<string>('redisPassword') || undefined,
               },
           defaultJobOptions: {
             attempts: 3,

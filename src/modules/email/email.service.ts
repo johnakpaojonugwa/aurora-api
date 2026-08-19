@@ -16,7 +16,9 @@ export class EmailService implements OnModuleInit {
   }
 
   async sendVerificationEmail(email: string, token: string) {
-    console.log(`[Verification Email] Sent to: ${email}, Verification Token: ${token}`);
+    console.log(
+      `[Verification Email] Sent to: ${email}, Verification Token: ${token}`,
+    );
 
     if (!this.resend) {
       console.warn('Resend API key is not configured. Email send simulated.');

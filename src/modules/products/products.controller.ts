@@ -50,10 +50,7 @@ export class ProductsController {
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'manager')
-  async update(
-    @Param('id') id: string,
-    @Body() dto: UpdateProductDto,
-  ) {
+  async update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
     return this.productsService.update(id, dto);
   }
 

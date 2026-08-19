@@ -12,10 +12,7 @@ export class UsersController {
   @Patch(':id/role')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async updateRole(
-    @Param('id') id: string,
-    @Body() dto: UpdateRoleDto,
-  ) {
+  async updateRole(@Param('id') id: string, @Body() dto: UpdateRoleDto) {
     return this.usersService.updateRole(id, dto.role);
   }
 }

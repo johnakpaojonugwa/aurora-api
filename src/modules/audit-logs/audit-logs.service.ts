@@ -83,7 +83,9 @@ export class AuditLogsService {
       id: log.id,
       userId: log.userId,
       user: {
-        name: `${log.user.firstName || ''} ${log.user.lastName || ''}`.trim() || log.user.email,
+        name:
+          `${log.user.firstName || ''} ${log.user.lastName || ''}`.trim() ||
+          log.user.email,
         email: log.user.email,
       },
       action: log.action,
@@ -161,7 +163,9 @@ export class AuditLogsService {
     ];
 
     const rows = logs.map((log) => {
-      const name = `${log.user.firstName || ''} ${log.user.lastName || ''}`.trim() || log.user.email;
+      const name =
+        `${log.user.firstName || ''} ${log.user.lastName || ''}`.trim() ||
+        log.user.email;
       return [
         log.id,
         log.userId,

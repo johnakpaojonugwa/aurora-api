@@ -1,4 +1,9 @@
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
+import {
+  CallHandler,
+  ExecutionContext,
+  Injectable,
+  NestInterceptor,
+} from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -8,8 +13,14 @@ export interface StandardResponse<T> {
 }
 
 @Injectable()
-export class TransformInterceptor<T> implements NestInterceptor<T, StandardResponse<T>> {
-  intercept(context: ExecutionContext, next: CallHandler): Observable<StandardResponse<T>> {
+export class TransformInterceptor<T> implements NestInterceptor<
+  T,
+  StandardResponse<T>
+> {
+  intercept(
+    context: ExecutionContext,
+    next: CallHandler,
+  ): Observable<StandardResponse<T>> {
     const ctx = context.switchToHttp();
     const req = ctx.getRequest();
 
@@ -20,7 +31,12 @@ export class TransformInterceptor<T> implements NestInterceptor<T, StandardRespo
 
     return next.handle().pipe(
       map((data) => {
-        if (data && typeof data === 'object' && 'success' in data && 'data' in data) {
+        if (
+          data &&
+          typeof data === 'object' &&
+          'success' in data &&
+          'data' in data
+        ) {
           return data;
         }
         return {
