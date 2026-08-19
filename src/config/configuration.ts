@@ -1,0 +1,15 @@
+export default () => ({
+  port: parseInt(process.env.PORT || '5000', 10),
+  nodeEnv: process.env.NODE_ENV || 'development',
+  databaseUrl: process.env.DATABASE_URL,
+  corsOrigins: process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : ['http://localhost:3000'],
+  jwtSecret: process.env.JWT_SECRET || 'supersecretkeychangeinproduction',
+  jwtAccessExpiration: process.env.JWT_ACCESS_EXPIRATION || '15m',
+  jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || 'superrefreshsecretkeychangeinproduction',
+  jwtRefreshExpiration: process.env.JWT_REFRESH_EXPIRATION || '7d',
+  redisHost: process.env.REDIS_HOST || 'localhost',
+  redisPort: parseInt(process.env.REDIS_PORT || '6379', 10),
+  redisPassword: process.env.REDIS_PASSWORD || undefined,
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY,
+  resendApiKey: process.env.RESEND_API_KEY,
+});

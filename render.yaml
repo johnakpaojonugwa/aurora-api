@@ -1,0 +1,49 @@
+services:
+  # Redis Instance
+  - type: redis
+    name: aurora-redis
+    plan: free
+    ipAllowList: [] # Keep empty for internal-only access (Render default)
+
+  # NestJS Backend Web Service
+  - type: web
+    name: aurora-backend
+    env: node
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGINS
+        value: http://localhost:3000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: aurora-db
+          property: connectionString
+      - key: REDIS_HOST
+        fromService:
+          type: redis
+          name: aurora-redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: redis
+          name: aurora-redis
+          property: port
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_EXPIRATION
+        value: 15m
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_EXPIRATION
+        value: 7d
+      - key: RESEND_API_KEY
+        sync: false # Set securely in the Render Dashboard after deployment
+
+databases:
+  - name: aurora-db
+    plan: free
