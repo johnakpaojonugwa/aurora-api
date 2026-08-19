@@ -27,9 +27,16 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   async validate(req: Request, payload: any) {
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (token) {
-      const isBlacklisted = await this.redisService.get(`blacklist:${token}`);
-      if (isBlacklisted) {
-        throw new UnauthorizedException('Token has been revoked');
+      try {
+        const isBlacklisted = await this.redisService.get(`blacklist:${token}`);
+        if (isBlacklisted) {
+          throw new UnauthorizedException('Token has been revoked');
+        }
+      } catch (err) {
+        console.error(
+          '[JwtStrategy] Redis connection error during token blacklist check:',
+          err.message || err,
+        );
       }
     }
 

@@ -100,6 +100,7 @@ import { AppService } from './app.service';
     AuditLogsModule,
     CouponsModule,
     SettingsModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
