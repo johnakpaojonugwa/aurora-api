@@ -31,3 +31,6 @@ yarn-error.log*
 # OS metadata files
 .DS_Store
 Thumbs.db
+
+# Seeding
+/prisma/seed.ts
