@@ -17,6 +17,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { VerifyMfaDto } from './dto/verify-mfa.dto';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 
 @Injectable()
 export class AuthService {
@@ -26,13 +27,14 @@ export class AuthService {
     private configService: ConfigService,
     private redisService: RedisService,
     private emailService: EmailService,
+    private auditLogsService: AuditLogsService,
   ) {}
 
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
-    if (user && !user.deletedAt) {
+    if (user && !user.deletedAt && user.isActive) {
       const isValid = await bcrypt.compare(pass, user.passwordHash);
       if (isValid) {
         return this.sanitizeUser(user);
@@ -78,7 +80,7 @@ export class AuthService {
     };
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, ip?: string, userAgent?: string) {
     // Find user
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
@@ -88,9 +90,9 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Check if user is deleted
-    if (user.deletedAt) {
-      throw new UnauthorizedException('Account disabled');
+    // Check if user is deleted or suspended
+    if (user.deletedAt || !user.isActive) {
+      throw new UnauthorizedException('Account disabled or suspended');
     }
 
     // Verify password
@@ -116,6 +118,16 @@ export class AuthService {
       data: { lastLoginAt: new Date() },
     });
 
+    // Write audit log
+    await this.auditLogsService.log(
+      user.id,
+      'USER_LOGIN',
+      'auth',
+      { method: 'POST', url: '/api/v1/auth/login' },
+      ip || 'unknown',
+      userAgent || 'unknown',
+    );
+
     return {
       mfaRequired: false,
       user: this.sanitizeUser(user),
@@ -124,13 +136,18 @@ export class AuthService {
     };
   }
 
-  async verifyMfa(dto: VerifyMfaDto) {
+  async verifyMfa(dto: VerifyMfaDto, ip?: string, userAgent?: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: dto.userId },
     });
 
     if (!user || !user.mfaSecret) {
       throw new BadRequestException('MFA not configured');
+    }
+
+    // Check if user is deleted or suspended
+    if (user.deletedAt || !user.isActive) {
+      throw new UnauthorizedException('Account disabled or suspended');
     }
 
     // Verify TOTP
@@ -147,6 +164,16 @@ export class AuthService {
 
     // Generate tokens
     const tokens = await this.generateTokens(user.id, user.email, user.role);
+
+    // Write audit log
+    await this.auditLogsService.log(
+      user.id,
+      'USER_LOGIN_MFA',
+      'auth',
+      { method: 'POST', url: '/api/v1/auth/verify-mfa' },
+      ip || 'unknown',
+      userAgent || 'unknown',
+    );
 
     return {
       user: this.sanitizeUser(user),
@@ -165,8 +192,8 @@ export class AuthService {
         where: { id: payload.sub },
       });
 
-      if (!user) {
-        throw new UnauthorizedException('User not found');
+      if (!user || user.deletedAt || !user.isActive) {
+        throw new UnauthorizedException('User not found or disabled/suspended');
       }
 
       // Check if refresh token matches

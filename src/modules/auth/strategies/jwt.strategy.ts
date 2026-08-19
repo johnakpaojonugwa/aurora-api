@@ -34,8 +34,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       where: { id: payload.sub },
     });
 
-    if (!user || user.deletedAt) {
-      throw new UnauthorizedException('User not found or disabled');
+    if (!user || user.deletedAt || !user.isActive) {
+      throw new UnauthorizedException('User not found or disabled/suspended');
     }
 
     // Remove sensitive data

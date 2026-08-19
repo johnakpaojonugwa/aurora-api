@@ -22,15 +22,19 @@ export class AuthController {
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  async login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  async login(@Body() dto: LoginDto, @Req() req: express.Request) {
+    const ip = req.ip || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    return this.authService.login(dto, ip, userAgent);
   }
 
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('verify-mfa')
-  async verifyMfa(@Body() dto: VerifyMfaDto) {
-    return this.authService.verifyMfa(dto);
+  async verifyMfa(@Body() dto: VerifyMfaDto, @Req() req: express.Request) {
+    const ip = req.ip || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    return this.authService.verifyMfa(dto, ip, userAgent);
   }
 
   @Public()

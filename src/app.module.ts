@@ -19,6 +19,9 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { EmailModule } from './modules/email/email.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
+import { CouponsModule } from './modules/coupons/coupons.module';
+import { SettingsModule } from './modules/settings/settings.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -92,6 +95,9 @@ import { AppService } from './app.service';
     PaymentsModule,
     EmailModule,
     AnalyticsModule,
+    AuditLogsModule,
+    CouponsModule,
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

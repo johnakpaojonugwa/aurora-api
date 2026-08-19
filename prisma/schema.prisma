@@ -49,6 +49,8 @@ model User {
   refreshToken    String?
   lastLoginAt     DateTime?
   deletedAt       DateTime?
+  isActive        Boolean         @default(true)
+  notes           String?
 
   // Relations
   addresses       Address[]
@@ -56,6 +58,7 @@ model User {
   cart            Cart?
   reviews         Review[]
   wishlistItems   WishlistItem[]
+  auditLogs       AuditLog[]
 
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
@@ -349,4 +352,34 @@ model FailedJob {
   resolvedAt  DateTime?
 
   @@index([retryAt])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String
+  module    String
+  details   Json
+  ip        String
+  userAgent String
+  timestamp DateTime @default(now())
+
+  @@index([userId])
+  @@index([module])
+  @@index([timestamp])
+}
+
+model SystemSettings {
+  id                    String   @id @default(cuid())
+  storeName             String
+  storeLogo             String?
+  contactEmail          String
+  contactPhone          String?
+  defaultCurrency       String   @default("USD")
+  taxRates              Json
+  shippingRules         Json
+  freeShippingThreshold Decimal? @db.Decimal(10, 2)
+
+  updatedAt             DateTime @updatedAt
 }
