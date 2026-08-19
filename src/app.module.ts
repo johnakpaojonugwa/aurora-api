@@ -53,21 +53,26 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
     // BullMQ Queue
     BullModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        redis: {
-          host: configService.get<string>('redisHost', 'localhost'),
-          port: configService.get<number>('redisPort', 6379),
-          password: configService.get<string>('redisPassword') || undefined,
-        },
-        defaultJobOptions: {
-          attempts: 3,
-          backoff: {
-            type: 'exponential',
-            delay: 1000,
+      useFactory: (configService: ConfigService) => {
+        const redisUrl = configService.get<string>('redisUrl');
+        return {
+          redis: redisUrl
+            ? redisUrl
+            : {
+                host: configService.get<string>('redisHost', 'localhost'),
+                port: configService.get<number>('redisPort', 6379),
+                password: configService.get<string>('redisPassword') || undefined,
+              },
+          defaultJobOptions: {
+            attempts: 3,
+            backoff: {
+              type: 'exponential',
+              delay: 1000,
+            },
+            removeOnComplete: true,
           },
-          removeOnComplete: true,
-        },
-      }),
+        };
+      },
       inject: [ConfigService],
     }),
 

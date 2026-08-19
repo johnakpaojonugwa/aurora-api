@@ -9,11 +9,16 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   constructor(private configService: ConfigService) {}
 
   onModuleInit() {
-    this.client = new Redis({
-      host: this.configService.get<string>('redisHost', 'localhost'),
-      port: this.configService.get<number>('redisPort', 6379),
-      password: this.configService.get<string>('redisPassword') || undefined,
-    });
+    const redisUrl = this.configService.get<string>('redisUrl');
+    if (redisUrl) {
+      this.client = new Redis(redisUrl);
+    } else {
+      this.client = new Redis({
+        host: this.configService.get<string>('redisHost', 'localhost'),
+        port: this.configService.get<number>('redisPort', 6379),
+        password: this.configService.get<string>('redisPassword') || undefined,
+      });
+    }
 
     this.client.on('error', (err) => {
       // Catch and log connection errors gracefully
