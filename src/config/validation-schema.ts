@@ -16,4 +16,7 @@ export const validationSchema = Joi.object({
   REDIS_URL: Joi.string().allow('').optional(),
   STRIPE_SECRET_KEY: Joi.string().allow('').optional(),
   RESEND_API_KEY: Joi.string().allow('').optional(),
+  CLOUDINARY_CLOUD_NAME: Joi.string().allow('').optional(),
+  CLOUDINARY_API_KEY: Joi.string().allow('').optional(),
+  CLOUDINARY_API_SECRET: Joi.string().allow('').optional(),
 });

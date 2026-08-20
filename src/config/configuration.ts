@@ -16,4 +16,7 @@ export default () => ({
   redisUrl: process.env.REDIS_URL || undefined,
   stripeSecretKey: process.env.STRIPE_SECRET_KEY,
   resendApiKey: process.env.RESEND_API_KEY,
+  cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME,
+  cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
+  cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
 });

@@ -23,6 +23,7 @@ import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { CouponsModule } from './modules/coupons/coupons.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -101,6 +102,7 @@ import { AppService } from './app.service';
     CouponsModule,
     SettingsModule,
     NotificationsModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

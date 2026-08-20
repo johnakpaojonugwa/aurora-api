@@ -558,6 +558,10 @@ export class ProductsService {
     const categoryIdx = headers.indexOf('category');
     const descriptionIdx = headers.indexOf('description');
     const stockIdx = headers.indexOf('stock');
+    const imagesIdx =
+      headers.indexOf('images') !== -1
+        ? headers.indexOf('images')
+        : headers.indexOf('image');
 
     if (
       nameIdx === -1 ||
@@ -587,6 +591,13 @@ export class ProductsService {
       const category = row[categoryIdx];
       const description = descriptionIdx !== -1 ? row[descriptionIdx] : '';
       const stockVal = stockIdx !== -1 ? parseInt(row[stockIdx], 10) : 0;
+      const imagesStr = imagesIdx !== -1 ? row[imagesIdx] : '';
+      const imageUrls = imagesStr
+        ? imagesStr
+            .split(',')
+            .map((url) => url.trim())
+            .filter(Boolean)
+        : [];
 
       if (!name || !sku || isNaN(priceVal) || !category) {
         errors.push(`Row ${i + 2}: Invalid name, sku, price, or category`);
@@ -624,6 +635,20 @@ export class ProductsService {
                 isInStock: stockVal > 0,
               },
             });
+
+            if (imageUrls.length > 0) {
+              await tx.productImage.deleteMany({
+                where: { productId: existingProduct.id },
+              });
+              await tx.productImage.createMany({
+                data: imageUrls.map((url, idx) => ({
+                  productId: existingProduct.id,
+                  url,
+                  isPrimary: idx === 0,
+                  sortOrder: idx,
+                })),
+              });
+            }
           });
           successCount++;
         } else {
@@ -655,6 +680,17 @@ export class ProductsService {
                 isInStock: stockVal > 0,
               },
             });
+
+            if (imageUrls.length > 0) {
+              await tx.productImage.createMany({
+                data: imageUrls.map((url, idx) => ({
+                  productId: product.id,
+                  url,
+                  isPrimary: idx === 0,
+                  sortOrder: idx,
+                })),
+              });
+            }
           });
           successCount++;
         }
