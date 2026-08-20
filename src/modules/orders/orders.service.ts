@@ -650,4 +650,51 @@ export class OrdersService {
       date: order.createdAt,
     };
   }
+
+  /**
+   * Retrieves the complete order history for a specific customer.
+   * Maps Prisma database structures to match the frontend shape including product images.
+   * 
+   * @param userId The database ID of the user whose orders are retrieved.
+   * @returns Array of orders formatted for the client dashboard.
+   */
+  async findUserOrders(userId: string) {
+    const customerOrders = await this.prisma.order.findMany({
+      where: { userId },
+      include: {
+        items: {
+          include: {
+            product: {
+              include: {
+                images: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return customerOrders.map((order) => {
+      const shippingDetails = order.shippingAddress as any;
+      return {
+        id: order.id,
+        date: order.createdAt,
+        status: order.status,
+        total: Number(order.total),
+        firstName: shippingDetails?.name?.split(' ')[0] || '',
+        lastName: shippingDetails?.name?.split(' ').slice(1).join(' ') || '',
+        items: order.items.map((orderItem) => ({
+          id: orderItem.id,
+          name: orderItem.productName,
+          price: Number(orderItem.price),
+          quantity: orderItem.quantity,
+          variation: (orderItem.variation as any)?.name || 'Standard',
+          image: orderItem.product.images?.[0]?.url || 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=100',
+        })),
+      };
+    });
+  }
 }

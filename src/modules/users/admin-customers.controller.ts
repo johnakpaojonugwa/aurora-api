@@ -68,4 +68,17 @@ export class AdminCustomersController {
     const sendMail = dto.sendEmail !== undefined ? dto.sendEmail : true;
     return this.usersService.resetCustomerPassword(id, sendMail);
   }
+
+  /**
+   * Updates internal staff/admin annotation notes on a customer's profile.
+   * 
+   * @param id Database ID of the target customer account.
+   * @param body Payload containing the updated annotation text.
+   */
+  @Put(':id/notes')
+  @Roles('admin', 'manager')
+  @AuditLogAction('CUSTOMER_NOTES_UPDATED', 'users')
+  async updateNotes(@Param('id') id: string, @Body() body: { notes: string }) {
+    return this.usersService.updateCustomerNotes(id, body.notes);
+  }
 }
