@@ -17,7 +17,7 @@ export class EmailService implements OnModuleInit {
 
   async sendVerificationEmail(email: string, token: string) {
     console.log(
-      `[Verification Email] Sent to: ${email}, Verification Token: ${token}`,
+      `[Verification Email] Sent to: ${email}`,
     );
 
     if (!this.resend) {

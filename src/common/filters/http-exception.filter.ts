@@ -19,10 +19,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
+    const isProduction = process.env.NODE_ENV === 'production';
     const exceptionResponse: any =
       exception instanceof HttpException
         ? exception.getResponse()
-        : { message: exception?.message || 'Internal server error' };
+        : { message: isProduction ? 'Internal server error' : (exception?.message || 'Internal server error') };
 
     let message = exceptionResponse.message || exceptionResponse;
     let errors: any[] | null = null;

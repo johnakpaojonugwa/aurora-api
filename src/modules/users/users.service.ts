@@ -8,6 +8,7 @@ import { PrismaService } from '../../database/prisma.service';
 import { Role } from '@prisma/client';
 import { CreateAdminUserDto } from './dto/create-admin-user.dto';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class UsersService {
@@ -394,7 +395,7 @@ export class UsersService {
       'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
     let randomPassword = '';
     for (let i = 0; i < 12; i++) {
-      randomPassword += chars.charAt(Math.floor(Math.random() * chars.length));
+      randomPassword += chars.charAt(crypto.randomInt(0, chars.length));
     }
 
     const hashedPassword = await bcrypt.hash(randomPassword, 12);

@@ -188,10 +188,7 @@ export class AuthService {
   async refresh(dto: RefreshTokenDto) {
     try {
       const payload = this.jwtService.verify(dto.refreshToken, {
-        secret: this.configService.get<string>(
-          'jwtRefreshSecret',
-          'superrefreshsecretkeychangeinproduction',
-        ),
+        secret: this.configService.get<string>('jwtRefreshSecret'),
       });
 
       const user = await this.prisma.user.findUnique({
@@ -226,6 +223,36 @@ export class AuthService {
       };
     } catch (error) {
       throw new UnauthorizedException('Invalid refresh token');
+    }
+  }
+
+  async verifyEmail(token: string) {
+    try {
+      const payload = this.jwtService.verify(token, {
+        secret: this.configService.get<string>('jwtSecret'),
+      });
+
+      const userId = payload.sub;
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      if (user.isEmailVerified) {
+        return { success: true, message: 'Email is already verified' };
+      }
+
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { isEmailVerified: true },
+      });
+
+      return { success: true, message: 'Email verified successfully' };
+    } catch (error) {
+      throw new BadRequestException('Invalid or expired verification token');
     }
   }
 
@@ -332,10 +359,7 @@ export class AuthService {
         role,
       },
       {
-        secret: this.configService.get<string>(
-          'jwtRefreshSecret',
-          'superrefreshsecretkeychangeinproduction',
-        ),
+        secret: this.configService.get<string>('jwtRefreshSecret'),
         expiresIn: this.configService.get<string>(
           'jwtRefreshExpiration',
           '7d',

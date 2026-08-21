@@ -5,10 +5,9 @@ export default () => ({
   corsOrigins: process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',')
     : ['http://localhost:3000'],
-  jwtSecret: process.env.JWT_SECRET || 'supersecretkeychangeinproduction',
+  jwtSecret: process.env.JWT_SECRET,
   jwtAccessExpiration: process.env.JWT_ACCESS_EXPIRATION || '15m',
-  jwtRefreshSecret:
-    process.env.JWT_REFRESH_SECRET || 'superrefreshsecretkeychangeinproduction',
+  jwtRefreshSecret: process.env.JWT_REFRESH_SECRET,
   jwtRefreshExpiration: process.env.JWT_REFRESH_EXPIRATION || '7d',
   redisHost: process.env.REDIS_HOST || 'localhost',
   redisPort: parseInt(process.env.REDIS_PORT || '6379', 10),

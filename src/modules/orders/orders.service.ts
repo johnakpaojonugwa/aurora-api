@@ -572,9 +572,14 @@ export class OrdersService {
     });
 
     // 6. Attempt Charge via Stripe
+    const isProduction = this.configService.get<string>('nodeEnv') === 'production';
     const stripeKey = this.configService.get<string>('stripeSecretKey');
     let paymentSucceeded = false;
     let transactionId = '';
+
+    if (isProduction && (!stripeKey || stripeKey === 'sk_test_...')) {
+      throw new BadRequestException('Payment processing configuration is missing.');
+    }
 
     if (stripeKey && stripeKey !== 'sk_test_...') {
       try {

@@ -6,6 +6,9 @@ import {
   UploadedFiles,
   UseGuards,
   BadRequestException,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from './cloudinary.service';
@@ -21,10 +24,18 @@ export class CloudinaryController {
 
   @Post('image')
   @UseInterceptors(FileInterceptor('image'))
-  async uploadImage(@UploadedFile() file: Express.Multer.File) {
-    if (!file) {
-      throw new BadRequestException('Image file is required');
-    }
+  async uploadImage(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024, message: 'File too large. Max size is 5MB.' }),
+          new FileTypeValidator({ fileType: 'image/(jpeg|png|webp|gif|jpg)' }),
+        ],
+        fileIsRequired: true,
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
     const result = await this.cloudinaryService.uploadFile(file);
     return {
       url: result.secure_url,
@@ -38,6 +49,23 @@ export class CloudinaryController {
     if (!files || files.length === 0) {
       throw new BadRequestException('Image files are required');
     }
+
+    const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    const maxSizeBytes = 5 * 1024 * 1024; // 5MB
+
+    for (const file of files) {
+      if (!allowedMimeTypes.includes(file.mimetype)) {
+        throw new BadRequestException(
+          `Invalid file type for ${file.originalname}. Only JPG, PNG, WEBP, and GIF are allowed.`,
+        );
+      }
+      if (file.size > maxSizeBytes) {
+        throw new BadRequestException(
+          `File too large: ${file.originalname}. Max size is 5MB.`,
+        );
+      }
+    }
+
     const results = await Promise.all(
       files.map((file) => this.cloudinaryService.uploadFile(file)),
     );
